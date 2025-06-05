@@ -85,7 +85,8 @@ print("输出:\n", a[np.arange(4), b])
 # 10.对9 中输出的那四个元素，每个都加上10，然后重新输出矩阵a.(提示： a[np.arange(4), b] += 10 ）
 print("第十题：\n")
 
-a[np.arange(4), b] += 10 #利用numpy的高级索引功能，行用 np.arange(4) 生成，列用 b 数组指定，进行加法操作
+#利用numpy的高级索引功能，行用 np.arange(4) 生成，列用 b 数组指定，进行加法操作
+a[np.arange(4), b] += 10 
 print("输出:", a)
 
 # 11.执行 x = np.array([1, 2])，然后输出 x 的数据类型
@@ -103,12 +104,15 @@ print("输出:", type(x))
 # 13.执行 x = np.array([[1, 2], [3, 4]], dtype=np.float64) ，y = np.array([[5, 6], [7, 8]], dtype=np.float64)，然后输出 x+y ,和 np.add(x,y)
 print("第十三题：\n")
 
-x = np.array([[1, 2], [3, 4]], dtype=np.float64)# 创建一个二维的 NumPy 数组 x，其元素为 [[1, 2], [3, 4]]，数据类型指定为 np.float64（双精度浮点数）
-y = np.array([[5, 6], [7, 8]], dtype=np.float64)# 创建另一个二维的 NumPy 数组 y，其元素为 [[5, 6], [7, 8]]，数据类型同样为 np.float64
+# 创建一个二维的 NumPy 数组 x，其元素为 [[1, 2], [3, 4]]，数据类型指定为 np.float64（双精度浮点数）
+x = np.array([[1, 2], [3, 4]], dtype=np.float64)
+# 创建另一个二维的 NumPy 数组 y，其元素为 [[5, 6], [7, 8]]，数据类型同样为 np.float64
+y = np.array([[5, 6], [7, 8]], dtype=np.float64)
 
 print("x+y\n", x + y)# 使用 + 运算符对两个数组进行逐元素相加操作，并将结果打印出来
 
-print("np.add(x,y)\n", np.add(x, y))# np.add 是 NumPy 库中用于数组相加的函数，同样会对两个数组进行逐元素相加
+# np.add 是 NumPy 库中用于数组相加的函数，同样会对两个数组进行逐元素相加
+print("np.add(x,y)\n", np.add(x, y))
 
 # 14.利用 13题目中的x,y 输出 x-y 和 np.subtract(x,y)
 print("第十四题：\n")
@@ -137,22 +141,30 @@ print("np.sqrt(x)\n", np.sqrt(x))
 # 18.利用13题目中的x,y ,执行 print(x.dot(y)) 和 print(np.dot(x,y))
 print("第十八题：\n")
 
-print("x.dot(y)\n", x.dot(y))  # 使用dot方法进行矩阵乘法
-print("np.dot(x,y)\n", np.dot(x, y))  # 使用np.dot函数进行矩阵乘法
+# 使用dot方法进行矩阵乘法
+print("x.dot(y)\n", x.dot(y))
+# 使用np.dot函数进行矩阵乘法
+print("np.dot(x,y)\n", np.dot(x, y))
 
 # 19.利用13题目中的 x,进行求和。提示：输出三种求和 (1)print(np.sum(x)):   (2)print(np.sum(x，axis =0 ));   (3)print(np.sum(x,axis = 1))
 print("第十九题：\n")
 
-print("print(np.sum(x)):", np.sum(x))  # 所有元素求和
-print("print(np.sum(x, axis=0))", np.sum(x, axis=0))  # 按列求和（列维度）
-print("print(np.sum(x, axis=1))", np.sum(x, axis=1))  # 按行求和（行维度）
+# 所有元素求和
+print("print(np.sum(x)):", np.sum(x))
+# 按列求和（列维度）
+print("print(np.sum(x, axis=0))", np.sum(x, axis=0))
+# 按行求和（行维度）
+print("print(np.sum(x, axis=1))", np.sum(x, axis=1))
 
 # 20.利用13题目中的 x,进行求平均数（提示：输出三种平均数(1)print(np.mean(x)) (2)print(np.mean(x,axis = 0))(3) print(np.mean(x,axis =1))）
 print("第二十题：\n")
 
-print("print(np.mean(x))", np.mean(x))  # 全局均值
-print("print(np.mean(x,axis = 0))", np.mean(x, axis=0))  # 列均值
-print("print(np.mean(x,axis = 1))", np.mean(x, axis=1))  # 行均值
+# 全局均值
+print("print(np.mean(x))", np.mean(x))
+# 列均值
+print("print(np.mean(x,axis = 0))", np.mean(x, axis=0))
+# 行均值
+print("print(np.mean(x,axis = 1))", np.mean(x, axis=1))
 
 # 21.利用13题目中的x，对x 进行矩阵转置，然后输出转置后的结果，（提示： x.T 表示对 x 的转置）
 print("第二十一题：\n")
@@ -167,47 +179,66 @@ print(np.exp(x))
 
 # 23.利用13题目中的 x,求值最大的下标（提示(1)print(np.argmax(x)) ,(2) print(np.argmax(x, axis =0))(3)print(np.argmax(x),axis =1))
 print("第二十三题：\n")
-print("print(np.argmax(x))", np.argmax(x))# 打印整个数组 x 中最大值的下标
-print("print(np.argmax(x, axis=0))", np.argmax(x, axis=0))# 打印数组 x 沿着第 0 轴（通常是行方向）上每一列最大值的下标
-print("print(np.argmax(x, axis=1))", np.argmax(x, axis=1))# 打印数组 x 沿着第 1 轴（通常是列方向）上每一行最大值的下标
+# 打印整个数组 x 中最大值的下标
+print("print(np.argmax(x))", np.argmax(x))
+# 打印数组 x 沿着第 0 轴（通常是行方向）上每一列最大值的下标
+print("print(np.argmax(x, axis=0))", np.argmax(x, axis=0))
+# 打印数组 x 沿着第 1 轴（通常是列方向）上每一行最大值的下标
+print("print(np.argmax(x, axis=1))", np.argmax(x, axis=1))
 
 # 24.画图，y=x*x 其中 x = np.arange(0, 100, 0.1) （使用 NumPy 和 Matplotlib 绘制了二次函数 y=x^2 的图像）
 print("第二十四题：\n")
 
-x = np.arange(0, 100, 0.1) #生成从0到99.9的数组，步长为 0.1，共 1000 个点 （注：np.arange() 遵循的是左闭右开原则）
-y = x * x #计算每个 x 对应的y=x^2 的值
+#生成从0到99.9的数组，步长为 0.1，共 1000 个点 （注：np.arange() 遵循的是左闭右开原则）
+x = np.arange(0, 100, 0.1)
+#计算每个 x 对应的y=x^2 的值
+y = x * x
 
-plt.figure(figsize=(10, 6))  # 创建一个宽 10 英寸、高 6 英寸的图像窗口
-plt.plot(x, y, label="y = x^2", color="blue")  # 制蓝色曲线，并设置图例标签为y = x^2
+# 创建一个宽 10 英寸、高 6 英寸的图像窗口
+plt.figure(figsize = (10, 6))
+# 制蓝色曲线，并设置图例标签为y = x^2
+plt.plot(x, y, label="y = x^2", color = "blue")
 
 # 添加标题和标签
-plt.title("Plot of y = x^2")  # 图像标题
-plt.xlabel("x")  # x 轴标签
-plt.ylabel("y")  # y 轴标签
+# 图像标题
+plt.title("Plot of y = x^2")
+# x 轴标签
+plt.xlabel("x")
+# y 轴标签
+plt.ylabel("y")
 
 # 显示半透明网格线
-plt.grid(True, alpha=0.5)
+plt.grid(True, alpha = 0.5)
 
 # 在右上角显示图例
-plt.legend(loc='upper right')
+plt.legend(loc = 'upper right')
 
-plt.show() #显示绘制的图像
+#显示绘制的图像
+plt.show()
 
 # 25.画图：画正弦函数和余弦函数， x = np.arange(0, 3 * np.pi, 0.1)(提示：这里用到 np.sin() ，np.cos() 函数和 matplotlib.pyplot 库)
 print("第二十五题：\n")
 
-x = np.arange(0, 3 * np.pi, 0.1)  ## 生成从0到3π 的x值，步长为0.1
-y_sin = np.sin(x)  # 计算对应的正弦值
-y_cos = np.cos(x)  # 计算对应的余弦值
+# 生成从0到3π 的x值，步长为0.1
+x = np.arange(0, 3 * np.pi, 0.1)
+# 计算对应的正弦值
+y_sin = np.sin(x)
+# 计算对应的余弦值
+y_cos = np.cos(x)
 
-plt.figure(figsize=(10, 6))  # # 创建一个图像窗口，设置大小为10×6英寸 
-plt.plot(x, y_sin, label="y = sin(x)", color="blue")  # 绘制正弦函数曲线
-plt.plot(x, y_cos, label="y = cos(x)", color="red") # 绘制余弦函数曲线
+# 创建一个图像窗口，设置大小为10×6英寸
+plt.figure(figsize=(10, 6))
+# 绘制正弦函数曲线
+plt.plot(x, y_sin, label="y = sin(x)", color="blue")
+# 绘制余弦函数曲线
+plt.plot(x, y_cos, label="y = cos(x)", color="red")
 
 # 添加标题和标签
 plt.title("Sine and Cosine Functions")
-plt.xlabel("x")  # 设置图像中 x 轴的标签为 "x"
-plt.ylabel("y")  # 设置图像中 y 轴的标签为 "y"
+# 设置图像中 x 轴的标签为 "x"
+plt.xlabel("x")
+# 设置图像中 y 轴的标签为 "y"
+plt.ylabel("y")
 
 # 添加网格线
 plt.grid(True)
