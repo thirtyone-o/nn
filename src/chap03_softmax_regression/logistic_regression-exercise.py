@@ -58,7 +58,7 @@ plt.scatter(C1[:, 0], C1[:, 1], c = 'b', marker = '+')
 plt.scatter(C2[:, 0], C2[:, 1], c = 'g', marker = 'o')
 
 # 将正样本和负样本连接成一个数据集
-data_set = np.concatenate((C1, C2), axis=0)
+data_set = np.concatenate((C1, C2), axis = 0)
 # 随机打乱数据集的顺序
 np.random.shuffle(data_set)
 
