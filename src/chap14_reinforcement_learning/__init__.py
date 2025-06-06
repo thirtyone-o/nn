@@ -17,7 +17,6 @@ register(
     reward_threshold = 75.0,
 )
 
-
 register(
     id = 'ReversedAddition-v0',
     entry_point = 'gym.envs.algorithmic:ReversedAdditionEnv',
@@ -58,7 +57,6 @@ register(
     max_episode_steps = 200,  # 200步达标
     reward_threshold = 195.0,
 )
-
 
 register(
     id = 'CartPole-v1',  # 更高难度版本
