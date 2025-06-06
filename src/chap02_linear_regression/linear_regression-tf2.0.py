@@ -27,7 +27,6 @@ def multinomial_basis(x, feature_num=10):
     ret = np.concatenate(feat, axis=1)
     return ret
 
-
 def gaussian_basis(x, feature_num=10):
     """高斯基函数"""
     # 使用np.linspace在区间[0, 25]上均匀生成feature_num个中心点
@@ -42,7 +41,6 @@ def gaussian_basis(x, feature_num=10):
     out = (x - centers) / width  # 计算每个样本点到每个中心点的标准化距离
     ret = np.exp(-0.5 * out ** 2)  # 对标准化距离应用高斯函数
     return ret
-
 
 def load_data(filename, basis_func=gaussian_basis):
     """载入数据"""
@@ -59,7 +57,6 @@ def load_data(filename, basis_func=gaussian_basis):
         phi1 = basis_func(xs) # 应用基函数变换
         xs = np.concatenate([phi0, phi1], axis=1) # 拼接偏置和变换后的特征
         return (np.float32(xs), np.float32(ys)), (o_x, o_y)
-
 
 #定义模型
 class linearModel(Model):
@@ -161,11 +158,11 @@ print("训练集预测值与真实值的标准差：{:.1f}".format(std))
 
 plt.plot(o_x, o_y, "ro", markersize=3)
 plt.plot(o_x_test, y_test_preds, "k")
-# 设置x、y轴标签
+
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Linear Regression") # 图表标题
-# 虚线网格，半透明灰色
+
 plt.grid(True, linestyle="--", alpha=0.7, color="gray")
 plt.legend(["train", "test", "pred"]) # 添加图例，元素依次对应
 plt.tight_layout()  # 自动调整布局
