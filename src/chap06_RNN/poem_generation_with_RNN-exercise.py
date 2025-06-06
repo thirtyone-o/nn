@@ -207,6 +207,7 @@ def reduce_avg(reduce_target, lengths, dim):
     shape_of_lengths = lengths.get_shape()
     # 获取目标张量的形状
     shape_of_target = reduce_target.get_shape()
+    #验证张量的秩，如果秩不等于预期的 dim，则抛出错误。
     if len(shape_of_lengths) != dim:
         raise ValueError(('Second input tensor should be rank %d, ' +
                          'while it got rank %d') % (dim, len(shape_of_lengths)))
