@@ -384,8 +384,14 @@ def train(model, train_data, train_label, epochs=50,batch_size=128):
         accuracies.append(epoch_accuracy)
         print(f'Epoch {epoch}: Loss {epoch_loss:.4f}; Accuracy {epoch_accuracy:.4f}')
     return losses, accuracies
-
+    
+# 当该脚本被直接运行时（而不是被导入为模块时），执行以下代码块
 if __name__ == "__main__":
+    # 准备数据：加载并预处理训练和测试数据
+    # train_data: 训练图像数据
+    # train_label: 训练标签数据
+    # test_data: 测试图像数据
+    # test_label: 测试标签数据
     train_data, train_label, test_data, test_label = prepare_data()
     model = myModel()
     losses, accuracies = train(model, train_data, train_label)
