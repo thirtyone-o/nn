@@ -11,7 +11,7 @@ register(
 )
 
 register(
-    id = 'RepeatCopy-v0',
+    id = 'RepeatCopy-v0', # 重复复制任务
     entry_point = 'gym.envs.algorithmic:RepeatCopyEnv',
     max_episode_steps = 200,
     reward_threshold = 75.0,
