@@ -13,7 +13,6 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-
 def mnist_dataset():
     """
     加载并预处理MNIST数据集，返回训练集和测试集的TensorFlow Dataset对象。
@@ -35,7 +34,6 @@ def mnist_dataset():
     test_ds = test_ds.take(20000).shuffle(20000).batch(20000)
     return ds, test_ds
 
-
 def prepare_mnist_features_and_labels(x, y):
     """
     对MNIST数据集的特征和标签进行预处理。
@@ -51,7 +49,6 @@ def prepare_mnist_features_and_labels(x, y):
     x = tf.cast(x, tf.float32) / 255.0
     y = tf.cast(y, tf.int64)
     return x, y
-
 
 # ## 建立模型
 
