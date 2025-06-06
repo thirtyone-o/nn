@@ -19,6 +19,8 @@ def load_data(fname):
 
 def eval_acc(label, pred):
     """计算准确率。"""
+    label = np.asarray(label).astype(int)  # 确保标签为整数类型，避免类型不一致导致的比较问题
+    pred = np.asarray(pred).astype(int)    # 确保预测为整数类型
     return np.sum(label == pred) / len(pred)
 
 
@@ -28,21 +30,20 @@ class SVM():
     def __init__(self):
         self.learning_rate = 0.01
         self.reg_lambda = 0.01
-        self.max_iter = 1000 #控制模型在优化过程中更新其权重或参数的步长
+        self.max_iter = 1000 # 控制模型在优化过程中更新其权重或参数的步长
         self.w = None        # 权重向量
         self.b = None        # 偏置项
 
     def train(self, data_train):
         """训练模型。"""
-        # 请补全此处代码
-        X = data_train[:, :2]
-        y = data_train[:, 2]
-        y = np.where(y == 0, -1, 1)      # 将标签转换为{-1, 1}
-        m, n = X.shape
+        X = data_train[:, :2]                # 取前两列作为特征
+        y = data_train[:, 2]                 # 第三列为标签
+        y = np.where(y == 0, -1, 1)          # 将标签转换为{-1, 1}
+        m, n = X.shape                       # m为样本数，n为特征数
         
         # 初始化参数
-        self.w = np.zeros(n)
-        self.b = 0
+        self.w = np.zeros(n)                 # 权重初始化为0
+        self.b = 0                           # 偏置初始化为0
         
         for epoch in range(self.max_iter):
             # 计算函数间隔
@@ -51,8 +52,13 @@ class SVM():
             idx = np.where(margin < 1)[0]
             
             # 计算梯度
-            dw = (2 * self.reg_lambda * self.w) - np.mean(y[idx].reshape(-1, 1) * X[idx], axis=0)
-            db = -np.mean(y[idx])
+            # 如果所有样本都满足条件，则只考虑正则项
+            if len(idx) > 0:
+                dw = (2 * self.reg_lambda * self.w) - np.mean(y[idx].reshape(-1, 1) * X[idx], axis=0)
+                db = -np.mean(y[idx])
+            else:
+                dw = 2 * self.reg_lambda * self.w
+                db = 0.0
             
             # 参数更新
             self.w -= self.learning_rate * dw
@@ -60,9 +66,9 @@ class SVM():
 
     def predict(self, x):
         """预测标签。"""
-        # 请补全此处代码
-        score = np.dot(x, self.w) + self.b
-        return np.where(score >= 0, 1, 0)  # 转换回{0, 1}标签
+        x = np.atleast_2d(x)                 # 支持单样本或批量样本输入
+        score = np.dot(x, self.w) + self.b   # 计算决策函数得分
+        return np.where(score >= 0, 1, 0)    # 转换回{0, 1}标签
 
 
 if __name__ == '__main__':
