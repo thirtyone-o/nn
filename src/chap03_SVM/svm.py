@@ -1,7 +1,7 @@
 # python: 3.5.2
 # encoding: utf-8
 
-import numpy as np
+import numpy as np # 导入NumPy库，用于数值计算
 
 
 def load_data(fname):
@@ -77,15 +77,15 @@ if __name__ == '__main__':
     svm.train(data_train)  # 训练模型
 
     # 使用SVM模型预测标签
-    x_train = data_train[:, :2]  # feature [x1, x2]
-    t_train = data_train[:, 2]   # 真实标签
+    x_train = data_train[:, :2]  # 提取训练集特征[x1, x2]
+    t_train = data_train[:, 2]   # 提取训练集真实标签
     t_train_pred = svm.predict(x_train)     # 预测标签
-    x_test = data_test[:, :2]
-    t_test = data_test[:, 2]
-    t_test_pred = svm.predict(x_test)
+    x_test = data_test[:, :2]  # 提取测试集特征
+    t_test = data_test[:, 2]   # 提取测试集真实标签
+    t_test_pred = svm.predict(x_test)  # 预测测试集标签
 
-    # 评估结果，计算准确率
+   # 评估模型性能
     acc_train = eval_acc(t_train, t_train_pred)
-    acc_test = eval_acc(t_test, t_test_pred)
+    acc_test = eval_acc(t_test, t_test_pred)  # 计算测试集准确率
     print("train accuracy: {:.1f}%".format(acc_train * 100))
-    print("test accuracy: {:.1f}%".format(acc_test * 100))
+    print("test accuracy: {:.1f}%".format(acc_test * 100))  # 打印测试集准确率
