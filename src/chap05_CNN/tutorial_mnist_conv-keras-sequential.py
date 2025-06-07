@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 # ## 准备数据
 
 # In[1]:
@@ -12,7 +11,6 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 
 def mnist_dataset():
     """
@@ -35,7 +33,6 @@ def mnist_dataset():
     test_ds = test_ds.take(20000).shuffle(20000).batch(20000)
     
     return ds, test_ds
-
 
 def prepare_mnist_features_and_labels(x, y):
     """
@@ -78,6 +75,7 @@ optimizer = optimizers.Adam(0.0001)
 # ## 编译， fit以及evaluate
 
 # In[4]:
+#使用Keras API来编译和训练一个神经网络模型，并在MNIST数据集上进行评估。
 model.compile(
     optimizer = optimizer,
     loss = 'sparse_categorical_crossentropy',
