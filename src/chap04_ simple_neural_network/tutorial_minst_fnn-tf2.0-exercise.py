@@ -25,6 +25,13 @@ def mnist_dataset():
     x = x / 255.0
     x_test = x_test / 255.0
 
+    # 转换为float32，确保后续TensorFlow计算的兼容性
+    x = x.astype(np.float32)
+    x_test = x_test.astype(np.float32)
+    # 标签转换为int64，兼容tf损失函数
+    y = y.astype(np.int64)
+    y_test = y_test.astype(np.int64)
+
     return (x, y), (x_test, y_test)
 
 
@@ -41,10 +48,10 @@ class MyModel:
         ####################
         '''声明模型对应的参数'''
         ####################
-        # 输入层784 -> 隐藏层128
+        # 输入层784 -> 隐藏层128，权重初始化为正态分布，偏置初始化为0
         self.W1 = tf.Variable(tf.random.normal([784, 128], stddev=0.1))
         self.b1 = tf.Variable(tf.zeros([128]))
-        # 隐藏层128 -> 输出层10
+        # 隐藏层128 -> 输出层10，权重初始化为正态分布，偏置初始化为0
         self.W2 = tf.Variable(tf.random.normal([128, 10], stddev=0.1))
         self.b2 = tf.Variable(tf.zeros([10]))
 
@@ -52,14 +59,14 @@ class MyModel:
         ####################
         '''实现模型函数体，返回未归一化的logits'''
         ####################
-        x = tf.reshape(x, [-1, 784])  # 展平输入图像
-        h1 = tf.nn.relu(tf.matmul(x, self.W1) + self.b1)  # 第一层激活
-        logits = tf.matmul(h1, self.W2) + self.b2  # 输出层
+        x = tf.reshape(x, [-1, 784])  # 展平输入图像为一维向量
+        h1 = tf.nn.relu(tf.matmul(x, self.W1) + self.b1)  # 第一层激活，使用ReLU函数
+        logits = tf.matmul(h1, self.W2) + self.b2  # 输出层，未经过softmax
         return logits
 
 
 model = MyModel()
-optimizer = optimizers.Adam()
+optimizer = optimizers.Adam()  # 使用Adam优化器，自动调整学习率
 
 
 # ## 计算 loss
@@ -68,6 +75,12 @@ optimizer = optimizers.Adam()
 
 @tf.function
 def compute_loss(logits, labels):
+    """
+    计算交叉熵损失，适用于多分类问题。
+    logits: 模型未归一化输出
+    labels: 真实标签（整数编码）
+    返回：平均损失
+    """
     return tf.reduce_mean(
         tf.nn.sparse_softmax_cross_entropy_with_logits(
             logits=logits, labels=labels
@@ -77,6 +90,12 @@ def compute_loss(logits, labels):
 
 @tf.function
 def compute_accuracy(logits, labels):
+    """
+    计算准确率。
+    logits: 模型未归一化输出
+    labels: 真实标签（整数编码）
+    返回：平均准确率
+    """
     predictions = tf.argmax(logits, axis=1)
     return tf.reduce_mean(tf.cast(tf.equal(predictions, labels), tf.float32))
 
@@ -145,6 +164,7 @@ def test(model, x, y):
 # In[14]:
 
 train_data, test_data = mnist_dataset()
+# 训练50轮，每轮都用全部训练集进行一次参数更新
 for epoch in range(50):
     loss, accuracy = train_one_step(
         model,
@@ -154,6 +174,7 @@ for epoch in range(50):
     )
     print('epoch', epoch, ': loss', loss.numpy(), '; accuracy', accuracy.numpy())
 
+# 在测试集上评估模型性能
 loss, accuracy = test(
     model,
     tf.constant(test_data[0], dtype=tf.float32),

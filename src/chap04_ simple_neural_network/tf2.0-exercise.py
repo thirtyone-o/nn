@@ -31,32 +31,54 @@ def softmax(x):
     
     # 计算softmax值，添加小的epsilon值避免除零错误
     sum_exp = tf.reduce_sum(exp_x, axis=-1, keepdims=True)
-    return exp_x / (sum_exp + 1e-10)
+    softmax_result = exp_x / (sum_exp + 1e-10)
+    # 返回概率分布，保证每一行和为1
+    return softmax_result
 
 
 # 测试 softmax 实现是否正确，使用随机数据对比 TensorFlow 的实现
 test_data = np.random.normal(size=[10, 5])
-(softmax(test_data).numpy() - tf.nn.softmax(test_data, axis=-1).numpy())**2 < 0.0001
+# 计算自定义softmax与TensorFlow自带softmax的差异，判断是否足够接近
+assert np.all((softmax(test_data).numpy() - tf.nn.softmax(test_data, axis=-1).numpy())**2 < 0.0001), "Softmax实现有误"
 
 
 # ## 实现sigmoid函数
 
 def sigmoid(x):
+    """
+    实现sigmoid激活函数。
+    
+    参数:
+        x (tf.Tensor): 输入张量
+        
+    返回:
+        tf.Tensor: sigmoid处理后的概率分布
+    """
     exp_neg_x = tf.exp(-x)# 计算 -x 的指数
     prob_x = 1.0 / (1.0 + exp_neg_x) # 计算 sigmoid 函数值
+    # 返回概率，范围在(0,1)之间
     return prob_x
 
 
 # 测试 sigmoid 实现是否正确
 test_data = np.random.normal(size=[10, 5])
-(sigmoid(test_data).numpy() - tf.nn.sigmoid(test_data).numpy())**2 < 0.0001
+# 计算自定义sigmoid与TensorFlow自带sigmoid的差异，判断是否足够接近
+assert np.all((sigmoid(test_data).numpy() - tf.nn.sigmoid(test_data).numpy())**2 < 0.0001), "Sigmoid实现有误"
 
 
 # ## 实现 softmax 交叉熵loss函数
 
 def softmax_ce(x, label):
-    ##########
-    '''实现 softmax 交叉熵loss函数， 不允许用tf自带的softmax_cross_entropy函数'''
+    """
+    实现 softmax 交叉熵loss函数， 不允许用tf自带的softmax_cross_entropy函数。
+    
+    参数:
+        x (tf.Tensor): 预测概率分布（已softmax）
+        label (tf.Tensor): one-hot标签
+        
+    返回:
+        tf.Tensor: 交叉熵损失标量
+    """
     ##########
     # 使用 clip 避免 log(0) 产生数值不稳定
     x = tf.clip_by_value(x, 1e-10, 1.0)
@@ -76,15 +98,24 @@ label = np.zeros_like(test_data)
 label[np.arange(10), np.random.randint(0, 5, size=10)] = 1.0  
 
 # 对比手动实现和 TensorFlow 实现的 softmax 交叉熵结果
-((tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(label, test_data))
-  - softmax_ce(prob, label))**2 < 0.0001).numpy()
+# 这里比较的是均方误差是否足够小
+assert ((tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(label, test_data))
+  - softmax_ce(prob, label))**2 < 0.0001).numpy(), "Softmax交叉熵实现有误"
 
 
 # ## 实现 sigmoid 交叉熵loss函数
 
 def sigmoid_ce(x, label):
-    ##########
-    '''实现 softmax 交叉熵loss函数， 不允许用tf自带的softmax_cross_entropy函数'''
+    """
+    实现 sigmoid 交叉熵loss函数， 不允许用tf自带的sigmoid_cross_entropy函数。
+    
+    参数:
+        x (tf.Tensor): 预测概率分布（已sigmoid）
+        label (tf.Tensor): 标签（0或1）
+        
+    返回:
+        tf.Tensor: 交叉熵损失标量
+    """
     ##########
     # clip 避免 log(0) 的数值不稳定问题
     x = tf.clip_by_value(x, 1e-10, 1.0 - 1e-10)
@@ -102,8 +133,9 @@ test_data = np.random.normal(size=[10])
 prob = tf.nn.sigmoid(test_data)  
 # 随机生成 0 或 1 的标签
 label = np.random.randint(0, 2, 10).astype(test_data.dtype)   
-print(label)
+print("标签为:", label)
 
 # 对比手动实现和 TensorFlow 实现的 sigmoid 交叉熵结果
-((tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(label, test_data))
-  - sigmoid_ce(prob, label))**2 < 0.0001).numpy()
+# 这里比较的是均方误差是否足够小
+assert ((tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(label, test_data))
+  - sigmoid_ce(prob, label))**2 < 0.0001).numpy(), "Sigmoid交叉熵实现有误"
