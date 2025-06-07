@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 # ## 准备数据
-
 # In[7]:
 
 import os
@@ -11,7 +10,6 @@ from tensorflow import keras
 from tensorflow.keras import layers, optimizers, datasets
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
-
 
 def mnist_dataset():
     """
@@ -74,7 +72,8 @@ def compute_loss(logits, labels):
         )
     )
 
-
+#使用TensorFlow的@tf.function装饰器将Python函数转换为TensorFlow计算图
+#这可以提高执行效率，特别是在多次调用时
 @tf.function
 def compute_accuracy(logits, labels):
     predictions = tf.argmax(logits, axis=1)
