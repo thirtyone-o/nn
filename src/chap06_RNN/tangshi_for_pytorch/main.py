@@ -3,13 +3,11 @@ import collections
 import torch
 from torch.autograd import Variable
 import torch.optim as optim
-
 import rnn
 
 start_token = 'B' #定义了起始标记，表示序列的开始
 end_token = 'E'#定义了结束标记表示序列的结束
 batch_size = 64 #定义了训练或推理时的批处理大小（Batch Size），即每次处理的样本数量
-
 
 def process_poems1(file_name):
     """
@@ -288,7 +286,7 @@ def gen_poem(begin_word):
     rnn_model.load_state_dict(torch.load('./poem_generator_rnn'))
 
     # 指定开始的字
-
+    #一个简单的文本生成过程,使用一个循环来逐步构建文本，直到满足某个终止条件。
     poem = begin_word
     word = begin_word
     while word != end_token:
