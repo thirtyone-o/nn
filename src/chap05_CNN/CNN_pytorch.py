@@ -89,7 +89,9 @@ class CNN(nn.Module):
         out1 = self.out1(x)        # 第一个全连接层 + 激活函数，线性变换: [B, in_features] -> [B, hidden_features]
         out1 = F.relu(out1)        # 应用ReLU激活函数引入非线性
         out1 = self.dropout(out1)  # 应用dropout正则化，随机丢弃部分神经元输出
-        out2 = self.out2(out1)
+        out2 = self.out2(out1)     # 应用dropout正则化，随机丢弃部分神经元输出
+        # 第二个全连接层，将隐藏层特征映射到输出空间
+        # 线性变换: [B, hidden_features] -> [B, out_features]
         return out2
 
 # 测试函数 - 评估模型在测试集上的准确率
