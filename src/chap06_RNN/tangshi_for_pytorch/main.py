@@ -71,7 +71,6 @@ def process_poems1(file_name):
 
     return poems_vector, word_int_map, words
 
-
 def process_poems2(file_name):
     """
     处理诗歌文本数据，转换为向量表示
@@ -289,7 +288,7 @@ def gen_poem(begin_word):
     rnn_model.load_state_dict(torch.load('./poem_generator_rnn'))
 
     # 指定开始的字
-
+    #基于RNN的诗歌生成器，它从一个起始词(begin_word)开始，通过RNN模型逐词预测并生成后续的词语，直到遇到结束标记(end_token)或诗歌长度超过30个词为止
     poem = begin_word
     word = begin_word
     while word != end_token:
