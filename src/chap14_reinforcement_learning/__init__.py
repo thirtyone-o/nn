@@ -17,7 +17,6 @@ register(
     max_episode_steps = 200,# 设置单轮训练的最大时间步数限制
     reward_threshold = 75.0,# 更高阈值反映任务复杂性增加
 )
-
 # 反向加法任务：执行反向数字加法运算
 register(
     id = 'ReversedAddition-v0',
@@ -48,11 +47,9 @@ register(
     max_episode_steps = 200,
     reward_threshold = 25.0,
 )
-
 # Classic Control Environments - 经典控制环境
 # 基于物理模型的简单控制问题，常用于算法基准测试
 # 经典控制环境：基于数学模型的控制问题
-
 # 基础版倒立摆平衡任务
 register(
     id = 'CartPole-v0',  
@@ -60,15 +57,12 @@ register(
     max_episode_steps = 200,  # 平衡200步视为成功
     reward_threshold = 195.0,# 接近最大理论值200
 )
-
-
 register(
     id = 'CartPole-v1',  # 更高难度版本
     entry_point = 'gym.envs.classic_control:CartPoleEnv',
     max_episode_steps = 500,  # 500步达标
     reward_threshold = 475.0,
 )
-
 register(
     id='MountainCar-v0',  # 山车任务：爬坡
     entry_point='gym.envs.classic_control:MountainCarEnv',
@@ -81,13 +75,11 @@ register(
     max_episode_steps=999,
     reward_threshold=90.0,
 )
-
 register(
     id='Pendulum-v0',   # 钟摆任务：摆到垂直位置
     entry_point='gym.envs.classic_control:PendulumEnv',
     max_episode_steps = 200,
 )
-
 register(
     id='Acrobot-v1',     # 双连杆机械臂任务
     entry_point='gym.envs.classic_control:AcrobotEnv',
