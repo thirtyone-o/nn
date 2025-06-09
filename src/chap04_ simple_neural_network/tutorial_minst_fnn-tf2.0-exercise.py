@@ -166,7 +166,7 @@ for epoch in range(50):
     )
     print('epoch', epoch, ': loss', loss.numpy(), '; accuracy', accuracy.numpy())
 
-# 在测试集上评估模型性能
+# 使用TensorFlow评估一个深度学习模型在测试数据上的性能
 loss, accuracy = test(
     model,
     tf.constant(test_data[0], dtype=tf.float32),
