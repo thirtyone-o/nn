@@ -4,11 +4,16 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 #使用input_data.read_data_sets函数加载MNIST数据集，'MNIST_data'是数据集存储的目录路径，one_hot=True表示将标签转换为one-hot编码格式
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
-learning_rate = 1e-4 #学习率
-keep_prob_rate = 0.7 # Dropout保留概率0.7
-max_epoch = 2000 #最大训练轮数2000
+try:
+    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+except Exception as e:
+    print(f"数据加载失败: {e}")
+    
+
+learning_rate = 1e-4     #学习率
+keep_prob_rate = 0.7     #Dropout保留概率0.7
+max_epoch = 2000         #最大训练轮数2000
 
 
 def compute_accuracy(v_xs, v_ys):
@@ -120,12 +125,14 @@ def max_pool_2x2(x: tf.Tensor,
 ) -> tf.Tensor:
     # 验证参数合法性
     if padding not in ['SAME', 'VALID']:
-        raise ValueError(f"padding must be 'SAME' or 'VALID', got {padding}.")
+        raise ValueError(f"padding must be 'SAME' or 'VALID', got {padding}.")            # 验证padding参数
     if data_format not in ['NHWC', 'NCHW']:
-        raise ValueError(f"data_format must be 'NHWC' or 'NCHW', got {data_format}.")
+        raise ValueError(f"data_format must be 'NHWC' or 'NCHW', got {data_format}.")     # 验证data_format参数
     
     # 构造池化核和步长参数
     if data_format == 'NHWC':
+        # NHWC格式：[batch, height, width, channels]
+        # 池化核大小和步长都作用于height和width维度
         ksize = [1, pool_size, pool_size, 1]
         strides = [1, strides, strides, 1]
     else:  # NCHW
@@ -178,7 +185,7 @@ h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
 # 全连接层 2
 ## fc2 layer ##
-W_fc2 = weight_variable([1024, 10])
+W_fc2 = weight_variable([1024, 10])  # 权重矩阵：输入1024维→输出10维(对应10个类别
 b_fc2 = bias_variable([10])
 prediction = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 
@@ -186,12 +193,16 @@ prediction = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 cross_entropy = tf.reduce_mean(
     -tf.reduce_sum(ys * tf.log(prediction),reduction_indices=[1])
 )
+# 创建优化器 - Adam算法优化损失函数
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 
+# 创建TensorFlow会话 - 执行计算图的上下文环境
 with tf.Session() as sess:
+    # 初始化所有全局变量（权重和偏置）
     init = tf.global_variables_initializer()
     sess.run(init)
-    
+
+    # 训练循环 - 迭代多个epoch
     for i in range(max_epoch):
         batch_xs, batch_ys = mnist.train.next_batch(100)
         sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob:keep_prob_rate})

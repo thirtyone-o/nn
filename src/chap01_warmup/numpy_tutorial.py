@@ -116,6 +116,7 @@ print("输出:", a)
 print("第十一题：\n")
 
 x = np.array([1, 2])
+# 创建一个包含整数1和2的NumPy数组
 print("输出:", type(x))
 
 # 12. 执行 x = np.array([1.0, 2.0]) ，然后输出 x 的数据类类型
@@ -168,8 +169,8 @@ print("np.dot(x,y)\n", np.dot(x, y))  # 使用 np.dot 函数进行矩阵乘法
 print("第十九题：\n")
 
 print("print(np.sum(x)):", np.sum(x))  # 所有元素求和
-print("print(np.sum(x, axis=0))", np.sum(x, axis=0))  # 按列求和（列维度）
-print("print(np.sum(x, axis=1))", np.sum(x, axis=1))  # 按行求和（行维度）
+print("print(np.sum(x, axis = 0))", np.sum(x, axis = 0))  # 按列求和（列维度）
+print("print(np.sum(x, axis = 1))", np.sum(x, axis = 1))  # 按行求和（行维度）
 
 # 20. 利用 13 题目中的 x, 进行求平均数（提示：输出三种平均数(1)print(np.mean(x)) (2)print(np.mean(x,axis = 0))(3) print(np.mean(x,axis =1))）
 print("第二十题：\n")
@@ -238,6 +239,8 @@ plt.grid(True, alpha=0.5)
 
 # 显示图例
 plt.legend()
+
+# 自动调整子图布局，优化图形显示效果
 plt.tight_layout()
 
 # 显示图像
