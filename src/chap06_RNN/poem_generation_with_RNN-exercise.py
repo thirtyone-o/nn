@@ -18,17 +18,20 @@ start_token = 'bos'  # Beginning of sentence
 end_token = 'eos'    # End of sentence
 
 def process_dataset(fileName):
-    """处理诗歌数据集，构建词汇表和数字索引的诗歌数据
-    
+    """
+    处理诗歌数据集，构建词汇表和数字索引的诗歌数据
+
     Args:
-        fileName: 诗歌文本文件路径，格式为"标题:内容"
-        
+        fileName (str): 诗歌文本文件路径，格式为"标题:内容"
+
     Returns:
-        instances: 数字索引化的诗歌列表，每个诗歌是数字id的列表
-        word2id: 词语到数字id的映射字典
-        id2word: 数字id到词语的映射字典
+        instances (list): 数字索引化的诗歌列表，每个诗歌是一个包含数字id的元组 (id序列, 序列长度)
+        word2id (dict): 词语到数字id的映射字典
+        id2word (dict): 数字id到词语的映射字典
     """
     examples = []  # 存储处理后的诗歌样本
+    start_token = "<START>"  # 开始标记
+    end_token = "<END>"  # 结束标记
     # 以UTF-8编码打开文件，处理每行诗歌
     with open(fileName, 'r',encoding='utf-8', ) as fd:
         for line in fd:
@@ -38,12 +41,12 @@ def process_dataset(fileName):
             # 构建序列：[开始标记] + 内容字符列表 + [结束标记]
             ins = [start_token] + list(content) + [end_token] 
             if len(ins) > 200:  # 过滤掉长度过长的样本
-            ### 过滤过长的诗歌
                 continue
             examples.append(ins)
             
     # 统计词频
     counter = collections.Counter()
+    # 遍历examples中的每个样本(每个样本是一个句子或单词列表)
     for e in examples:
         for w in e:
             counter[w] += 1
@@ -237,27 +240,33 @@ def reduce_avg(reduce_target, lengths, dim):
     mask = tf.reshape(mask, shape=mask_shape) # 将掩码应用到目标张量上
 
     mask_target = reduce_target * tf.cast(mask, dtype=reduce_target.dtype)
-    if len(shape_of_lengths) != dim: # 再次验证输入
+    if len(shape_of_lengths) != dim: # 验证 lengths 的维度是否等于 dim
         raise ValueError(('Second input tensor should be rank %d, ' +
                          'while it got rank %d') % (dim, len(shape_of_lengths)))
-    if len(shape_of_target) < dim+1 :
+    if len(shape_of_target) < dim+1 :  # 确保 reduce_target 的维度至少是 dim + 1
         raise ValueError(('First input tensor should be at least rank %d, ' +
                          'while it got rank %d') % (dim+1, len(shape_of_target)))
 
     rank_diff = len(shape_of_target) - len(shape_of_lengths) - 1
-    mxlen = tf.shape(reduce_target)[dim]
+    mxlen = tf.shape(reduce_target)[dim]  # 获取当前维度的最大长度 mxlen
     mask = mkMask(lengths, mxlen)
-    if rank_diff!=0:
+    
+    # 处理序列长度与掩码张量的维度对齐问题
+    if rank_diff!=0: # 如果长度张量(lengths)和掩码张量(mask)的维度(rank)存在差异
+        # 构建新的长度张量形状：保留原始长度维度，并在末尾添加1来扩展维度
         len_shape = tf.concat(axis=0, values=[tf.shape(lengths), [1]*rank_diff])
+        # 构建新的掩码张量形状：保留原始掩码维度，并在末尾添加1来扩展维度
         mask_shape = tf.concat(axis=0, values=[tf.shape(mask), [1]*rank_diff])
     else:
+        # 当维度相同时，直接使用原始形状
         len_shape = tf.shape(lengths)
         mask_shape = tf.shape(mask)
+    # 重塑长度张量：添加必要的维度使其与掩码张量维度对齐
     lengths_reshape = tf.reshape(lengths, shape=len_shape)
+    # 重塑掩码张量：确保其形状符合广播规则要求
     mask = tf.reshape(mask, shape=mask_shape)
-
+    # 应用掩码到目标张量：将掩码区域的值置零
     mask_target = reduce_target * tf.cast(mask, dtype=reduce_target.dtype)
-
     # 在指定维度上求和（不保留归约后的维度）
     red_sum = tf.reduce_sum(mask_target, axis=[dim], keepdims=False)
     # 计算平均值：总和 / 有效元素数量 + 极小值（防止除以零）
@@ -343,15 +352,29 @@ def train(epoch, model, optimizer, ds):
 
 # In[5]:
 
-# 初始化优化器
+# 初始化优化器（使用Adam优化器，学习率设为0.0005）
 optimizer = optimizers.Adam(0.0005)  # 学习率0.0005
-# 加载数据集
+
+# 加载诗歌数据集
+# 返回三个对象：
+#   train_ds: 训练数据集
+#   word2id: 词语到ID的映射字典
+#   id2word: ID到词语的映射字典
 train_ds, word2id, id2word = poem_dataset()
-# 初始化模型
+
+# 初始化RNN模型实例
+# 传入word2id字典用于词汇表映射
 model = myRNNModel(word2id)
 
-# 训练10个epoch
+# 训练10个epoch（完整遍历数据集10次）
 for epoch in range(10):
+    # 调用train函数进行一个epoch的训练
+    # 参数说明：
+    #   epoch: 当前epoch编号
+    #   model: 要训练的模型
+    #   optimizer: 优化器
+    #   train_ds: 训练数据集
+    # 返回该epoch的loss值
     loss = train(epoch, model, optimizer, train_ds)
 
 # # 诗歌生成

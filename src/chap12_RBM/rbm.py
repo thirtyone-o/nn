@@ -30,6 +30,7 @@ class RBM:
         loc = 0.0,                # 均值
         scale = 0.1,              # 标准差（常见初始化方法）
         size = (n_observe, n_hidden))
+        # 初始化权重矩阵W，使用正态分布随机初始化
         # 可见层偏置（1 x n_observe）
         self.Wv = np.zeros((1, n_observe))
         # 隐藏层偏置（1 x n_hidden）
@@ -66,7 +67,17 @@ class RBM:
         return 1.0 / (1 + np.exp(-x))
 
     def _sample_binary(self, probs):
-        """伯努利采样：根据给定概率生成0或1（用于模拟神经元激活）"""
+        """伯努利采样：根据给定概率生成0或1（用于模拟神经元激活）
+           伯努利分布是二项分布的一种特殊情况，输出只有两种可能的值（0或1）。
+           通过给定的概率值probs，决定每次采样的输出：
+           - 如果probs为0，则始终输出0；
+           - 如果probs为1，则始终输出1；
+           - 如果probs介于0和1之间，则按照概率生成0或1。
+        """
+        # 确保probs的取值在[0, 1]范围内
+        if np.any(probs < 0) or np.any(probs > 1):
+            raise ValueError("概率值probs应在0和1之间。")
+        # 通过np.random.binomial进行伯努利采样，n=1表示单次试验，probs表示成功的概率
         return np.random.binomial(1, probs)
     
     def train(self, data):
@@ -132,7 +143,7 @@ class RBM:
         v = np.random.binomial(1, 0.5, self.n_observe)
 
         # 进行1000次 Gibbs采样迭代，以逐步趋近真实数据分布，使生成的样本更接近训练数据的分布
-        for _ in xrange(1000):
+        for _ in range(1000):
             # 基于当前的可见层v，计算隐藏层神经元被激活的概率（前向传播）
             h_prob = self._sigmoid(np.dot(v, self.W) + self.b_h)
 
@@ -151,14 +162,20 @@ class RBM:
 #  用MNIST 手写数字数据集训练一个（RBM），并从训练好的模型中采样生成一张手写数字图像
 if __name__ == '__main__':
     try:
-    # 加载二值化的MNIST数据，形状为 (60000, 28, 28)
-      mnist = np.load('mnist_bin.npy')  # 60000x28x28
+    # 加载二值化的MNIST数据，形状为 (60000, 28, 28)，表示60000张28x28的二值化图像
+      mnist = np.load('mnist_bin.npy')  # 加载数据文件
     except IOError:
+      # 如果文件加载失败，提示用户检查文件路径并退出程序
       print("无法加载MNIST数据文件，请确保mnist_bin.npy文件在正确的路径下")
       sys.exit(1)
-    n_imgs, n_rows, n_cols = mnist.shape
+
+    # 获取数据集的形状信息
+    n_imgs, n_rows, n_cols = mnist.shape# 分别表示图像数量、行数和列数
     img_size = n_rows * n_cols  # 计算单张图片展开后的长度
-    print(mnist.shape)  # 打印数据维度
+
+    # 打印数据集的形状信息，便于确认数据加载是否正确
+    print(mnist.shape)  # 输出数据集的形状
+
 
     # 初始化 RBM 对象：2个隐藏节点，784个可见节点（28×28 图像）
     rbm = RBM(2, img_size)
