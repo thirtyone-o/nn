@@ -214,8 +214,11 @@ def main(x_train, y_train, use_gradient_descent=False):
     basis_func = identity_basis  
 
     # 生成偏置项和特征矩阵
+    # 添加偏置项（截距）
     phi0 = np.expand_dims(np.ones_like(x_train), axis=1)
+    # 对输入数据应用基函数
     phi1 = basis_func(x_train)
+    # 合并偏置项和特征矩阵
     phi = np.concatenate([phi0, phi1], axis=1)
 
     # 最小二乘法求解权重
