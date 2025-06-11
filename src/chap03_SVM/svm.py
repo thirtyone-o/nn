@@ -55,6 +55,7 @@ class SVM:
 
         for epoch in range(self.max_iter):
             # 计算函数间隔
+            # margin = y * (w^T x + b)，表示样本到决策边界的距离（带符号）
             margin = y * (np.dot(X, self.w) + self.b)
             # 找出违反间隔条件的样本（margin < 1）： 当样本的 margin < 1 时，该样本被认为是错误分类或处于间隔区域内
             idx = np.where(margin < 1)[0]  # 返回违反间隔条件的样本的索引
