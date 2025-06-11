@@ -116,12 +116,17 @@ def conv2d(x, W, padding='SAME', strides=[1, 1, 1, 1]):
     # conv = tf.layers.batch_normalization(conv, training=is_training)
     
     return conv
-    
-def max_pool_2x2(x: tf.Tensor,
+  # 输入的 4D 张量（通常是 [batch, height, width, channels]）   
+def max_pool_2x2(x: tf.Tensor, 
+  # 池化窗口的大小（默认 2x2）
     pool_size: int = 2,
+  # 池化操作的步幅（默认 2，即窗口不重叠）
     strides: int = 2,
+  # 填充方式（'SAME' 保持输出尺寸与输入相近，'VALID' 不填充）
     padding: str = 'SAME',
+  # 数据格式（'NHWC' 或 'NCHW'，默认 'NHWC'）
     data_format: str = 'NHWC'
+  # 返回池化后的 4D 张量
 ) -> tf.Tensor:
     # 验证参数合法性
     if padding not in ['SAME', 'VALID']:
