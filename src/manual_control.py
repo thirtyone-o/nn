@@ -144,7 +144,7 @@ try:
     from pygame.locals import K_MINUS
     from pygame.locals import K_EQUALS
 except ImportError:
-    raise RuntimeError('cannot import pygame, make sure pygame package is installed')
+    raise RuntimeError('cannot import pygame, make sure pygame package is installed') # 抛出运行时错误：提示pygame库导入失败
 
 try:
     import numpy as np
@@ -164,8 +164,25 @@ def find_weather_presets():                                                     
     return [(getattr(carla.WeatherParameters, x), name(x)) for x in presets]
 
 
-def get_actor_display_name(actor, truncate=250):                                   # 提取 actor 的类型标识符，并将其格式化为更易读的名称（例如 vehicle.tesla.model3 -> Tesla Model3）
-    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])        # 如果名称过长，则进行截断，并在末尾加上省略号（…）
+def get_actor_display_name(actor, truncate=250):
+    """
+    格式化actor的类型标识符为易读的显示名称
+    参数:
+        actor: 包含type_id属性的对象（如CARLA中的车辆/行人对象）
+        truncate: 最大名称长度限制（默认250字符)
+    返回:
+        str: 格式化后的显示名称（示例：'vehicle.tesla.model3' -> 'Tesla Model3'）
+    """
+    # 处理原始type_id字符串:
+    # 1. 将下划线替换为点（保持统一分隔符）
+    # 2. 每个单词首字母大写（title()方法）
+    # 3. 按点分割后取第1部分之后的内容（跳过类别前缀如'vehicle'）
+    # 示例：'vehicle_tesla_model3' -> ['Vehicle', 'Tesla', 'Model3'] -> 'Tesla Model3'
+    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
+    
+    # 处理超长名称：
+    # 如果超过truncate限制，截断并添加Unicode省略号（…）
+    # 否则返回完整名称
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 
@@ -199,34 +216,34 @@ def get_actor_blueprints(world, filter, generation):                            
 #  ==============================================================================
 
 
-class World(object):
-    def __init__(self, carla_world, hud, args):
-        self.world = carla_world
-        self.sync = args.sync
+class World(object): # Carla 仿真世界的核心管理类，负责初始化和控制仿真环境的各个组件
+    def __init__(self, carla_world, hud, args): # 基础环境设置
+        self.world = carla_world                # Carla 服务器的世界对象
+        self.sync = args.sync                   # 主角车辆的角色名称
         self.actor_role_name = args.rolename
-        try:
+        try:                                    # 加载地图数据
             self.map = self.world.get_map()
         except RuntimeError as error:
             print('RuntimeError: {}'.format(error))
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
-        self.hud = hud
-        self.player = None
-        self.collision_sensor = None
-        self.lane_invasion_sensor = None
-        self.gnss_sensor = None
-        self.imu_sensor = None
-        self.radar_sensor = None
-        self.camera_manager = None
-        self._weather_presets = find_weather_presets()
-        self._weather_index = 0
+        self.hud = hud     # 显示仿真信息的HUD对象
+        self.player = None # 主角车辆
+        self.collision_sensor = None     # 碰撞传感器
+        self.lane_invasion_sensor = None # 车道入侵传感器
+        self.gnss_sensor = None    # GNSS传感器
+        self.imu_sensor = None     # IMU传感器
+        self.radar_sensor = None   # 雷达传感器
+        self.camera_manager = None # 相机管理器
+        self._weather_presets = find_weather_presets()  # 预设的天气配置列表（晴天、雨天、雾天等）
+        self._weather_index = 0    # 初始化天气索引为0
         self._actor_filter = args.filter
-        self._actor_generation = args.generation
+        self._actor_generation = args.generation #角色生成参数配置
         self._gamma = args.gamma
-        self.restart()
+        self.restart()  # 重启函数调用和 Tick 回调注册
         self.world.on_tick(hud.on_world_tick)
-        self.recording_enabled = False
+        self.recording_enabled = False  # 录制与控制相关变量
         self.recording_start = 0
         self.constant_velocity_enabled = False
         self.show_vehicle_telemetry = False
@@ -331,14 +348,14 @@ class World(object):
         # 显示HUD通知，告知用户当前选择的地图层
         self.hud.notification('LayerMap selected: %s' % selected)
 
-    def load_map_layer(self, unload=False):
-        selected = self.map_layer_names[self.current_map_layer]
-        if unload:
+    def load_map_layer(self, unload=False): # 加载或卸载当前选中的地图图层
+        selected = self.map_layer_names[self.current_map_layer] # 获取当前选中的地图图层名称
+        if unload:  # 卸载指定图层
             self.hud.notification('Unloading map layer: %s' % selected)
-            self.world.unload_map_layer(selected)
-        else:
+            self.world.unload_map_layer(selected) # 从内存中释放图层数据，停止渲染该图层
+        else: # 加载指定图层
             self.hud.notification('Loading map layer: %s' % selected)
-            self.world.load_map_layer(selected)
+            self.world.load_map_layer(selected) # 将指定图层的几何数据和纹理加载到内存，并在场景中渲染
 
     def toggle_radar(self):
         # 检查当前是否没有雷达传感器实例
@@ -351,13 +368,13 @@ class World(object):
             # 将self.radar_sensor设置为None，表示雷达传感器已被移除
             self.radar_sensor = None
 
-    def modify_vehicle_physics(self, actor):
-        #If actor is not a vehicle, we cannot use the physics control
+    def modify_vehicle_physics(self, actor): # 修改指定Actor的物理属性，启用轮扫碰撞检测
+        # 如果Actor不是车辆，则无法使用物理控制
         try:
-            physics_control = actor.get_physics_control()
-            physics_control.use_sweep_wheel_collision = True
-            actor.apply_physics_control(physics_control)
-        except Exception:
+            physics_control = actor.get_physics_control() # 获取车辆的物理控制对象
+            physics_control.use_sweep_wheel_collision = True # 启用轮扫碰撞检测
+            actor.apply_physics_control(physics_control) # 应用修改后的物理控制
+        except Exception: # 如果Actor不是车辆或操作失败，则忽略错误
             pass
 
     def tick(self, clock):
@@ -373,6 +390,7 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        """清理并销毁所有创建的传感器和车辆对象"""
         if self.radar_sensor is not None:
             self.toggle_radar()
         sensors = [
@@ -474,28 +492,36 @@ class KeyboardControl(object):
                         world.hud.notification("Enabled Constant Velocity Mode at 60 km/h")
                 elif event.key == K_o:
                     try:
+                        # 判断门是否已打开
                         if world.doors_are_open:
+                            # 如果门已经打开，关闭门并显示通知
                             world.hud.notification("Closing Doors")
                             world.doors_are_open = False
                             world.player.close_door(carla.VehicleDoor.All)
                         else:
+                            # 如果门未打开，打开门并显示通知
                             world.hud.notification("Opening doors")
                             world.doors_are_open = True
                             world.player.open_door(carla.VehicleDoor.All)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        # 捕获并打印异常信息，便于调试
+                        print(f"Error while toggling vehicle doors: {e}")
                 elif event.key == K_t:
+                    # 检查遥测是否已经启用
                     if world.show_vehicle_telemetry:
+                        # 如果启用，禁用遥测并显示通知
                         world.player.show_debug_telemetry(False)
                         world.show_vehicle_telemetry = False
                         world.hud.notification("Disabled Vehicle Telemetry")
                     else:
                         try:
+                            # 如果未启用，尝试启用遥测并显示通知
                             world.player.show_debug_telemetry(True)
                             world.show_vehicle_telemetry = True
                             world.hud.notification("Enabled Vehicle Telemetry")
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            # 捕获并忽略任何异常，可以在此添加日志记录
+                            print(f"Error enabling vehicle telemetry: {e}")
                 elif event.key > K_0 and event.key <= K_9:
                     index_ctrl = 0
                     if pygame.key.get_mods() & KMOD_CTRL:
@@ -597,35 +623,35 @@ class KeyboardControl(object):
                     elif event.key == K_x:
                         current_lights ^= carla.VehicleLightState.RightBlinker
 
-        if not self._autopilot_enabled:
-            if isinstance(self._control, carla.VehicleControl):
+        if not self._autopilot_enabled: # 仅在手动驾驶模式下执行
+            if isinstance(self._control, carla.VehicleControl): # 确保控制对象类型正确
                 self._parse_vehicle_keys(pygame.key.get_pressed(), clock.get_time())
-                self._control.reverse = self._control.gear < 0
-                # Set automatic control-related vehicle lights
-                if self._control.brake:
+                self._control.reverse = self._control.gear < 0 # 根据当前档位设置倒车状态（负数表示倒车档）
+                # 根据车辆操作自动控制灯光状态
+                if self._control.brake: # 刹车时启用刹车灯
                     current_lights |= carla.VehicleLightState.Brake
-                else: # Remove the Brake flag
+                else: # Remove the Brake flag # 松开刹车时关闭刹车灯
                     current_lights &= ~carla.VehicleLightState.Brake
-                if self._control.reverse:
+                if self._control.reverse: # 倒车时启用倒车灯
                     current_lights |= carla.VehicleLightState.Reverse
-                else: # Remove the Reverse flag
+                else:  # 非倒车状态关闭倒车灯
                     current_lights &= ~carla.VehicleLightState.Reverse
-                if current_lights != self._lights: # Change the light state only if necessary
+                if current_lights != self._lights:# 仅在灯光状态变化时更新车辆灯光，避免不必要的操作
                     self._lights = current_lights
                     world.player.set_light_state(carla.VehicleLightState(self._lights))
                 # Apply control
-                if not self._ackermann_enabled:
-                    world.player.apply_control(self._control)
-                else:
-                    world.player.apply_ackermann_control(self._ackermann_control)
-                    # Update control to the last one applied by the ackermann controller.
-                    self._control = world.player.get_control()
+                if not self._ackermann_enabled: # 非阿克曼模式（普通车辆控制）
+                    world.player.apply_control(self._control) # 直接应用车辆控制参数
+                else: # 阿克曼模式（更精确的车辆转向控制）
+                    world.player.apply_ackermann_control(self._ackermann_control) # 应用阿克曼控制
+                    # Update control to the last one applied by the ackermann controller. 
+                    self._control = world.player.get_control() # 更新控制状态为阿克曼控制器生成的最新值
                     # Update hud with the newest ackermann control
-                    world.hud.update_ackermann_control(self._ackermann_control)
+                    world.hud.update_ackermann_control(self._ackermann_control) # 更新HUD显示阿克曼控制参数
 
-            elif isinstance(self._control, carla.WalkerControl):
-                self._parse_walker_keys(pygame.key.get_pressed(), clock.get_time(), world)
-                world.player.apply_control(self._control)
+            elif isinstance(self._control, carla.WalkerControl): # 行人控制逻辑（当控制对象是行人时）
+                self._parse_walker_keys(pygame.key.get_pressed(), clock.get_time(), world) # 解析行人控制按键
+                world.player.apply_control(self._control) # 应用行人控制参数
 
     def _parse_vehicle_keys(self, keys, milliseconds):
         # 处理加速/前进控制 (W键或上箭头)
@@ -720,15 +746,28 @@ class KeyboardControl(object):
 
 class HUD(object):
     def __init__(self, width, height):
+        """
+        初始化HUD（平视显示器）类。
+
+        参数：
+        width (int): 显示器的宽度。
+        height (int): 显示器的高度。
+        """
+        # 保存显示器的尺寸
         self.dim = (width, height)
+        # 加载默认字体，大小为20
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
-        font_name = 'courier' if os.name == 'nt' else 'mono'
-        fonts = [x for x in pygame.font.get_fonts() if font_name in x]
-        default_font = 'ubuntumono'
-        mono = default_font if default_font in fonts else fonts[0]
-        mono = pygame.font.match_font(mono)
+        # 根据操作系统选择合适的等宽字体
+        font_name = 'courier' if os.name == 'nt' else 'mono'          # Windows系统使用'courier'，其他系统使用'mono'
+        fonts = [x for x in pygame.font.get_fonts() if font_name in x]# 获取所有包含font_name的字体名称
+        default_font = 'ubuntumono'                                   # 默认字体
+        mono = default_font if default_font in fonts else fonts[0]    # 如果默认字体可用则使用，否则使用第一个匹配的字体
+        mono = pygame.font.match_font(mono)                           # 匹配字体路径
+        # 加载等宽字体，大小根据操作系统调整
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
+        # 初始化通知文本对象，位于屏幕底部，高度为40像素
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
+        # 初始化帮助文本对象，使用等宽字体，大小为16
         self.help = HelpText(pygame.font.Font(mono, 16), width, height)
 
         # 性能指标初始化
@@ -936,37 +975,38 @@ class HelpText(object):
 # ==============================================================================
 
 
-class CollisionSensor(object):
-    def __init__(self, parent_actor, hud):
-        self.sensor = None
-        self.history = []
-        self._parent = parent_actor
-        self.hud = hud
-        world = self._parent.get_world()
+class CollisionSensor(object): # 碰撞传感器类，用于检测并记录车辆的碰撞事件
+    def __init__(self, parent_actor, hud):  # 初始化传感器属性
+        self.sensor = None                  # 存储Carla传感器对象的引用
+        self.history = []                   # 存储碰撞历史数据
+        self._parent = parent_actor         # 挂载传感器的父Actor
+        self.hud = hud                      # HUD对象，用于显示碰撞信息
+        world = self._parent.get_world()    # 获取世界对象并创建碰撞传感器蓝图
         bp = world.get_blueprint_library().find('sensor.other.collision')
-        self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
+        self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent) # 生成传感器并将其附着到父Actor上
         # We need to pass the lambda a weak reference to self to avoid circular
         # reference.
-        weak_self = weakref.ref(self)
+        weak_self = weakref.ref(self) # 设置传感器数据回调函数，使用弱引用避免循环引用
         self.sensor.listen(lambda event: CollisionSensor._on_collision(weak_self, event))
 
-    def get_collision_history(self):
-        history = collections.defaultdict(int)
-        for frame, intensity in self.history:
+    def get_collision_history(self):           # 获取按帧汇总的碰撞历史数据
+        history = collections.defaultdict(int) # 使用defaultdict初始化历史记录，默认值为0
+        for frame, intensity in self.history:  # 遍历所有碰撞记录，按帧号累加碰撞强度
             history[frame] += intensity
-        return history
+        return history                         # 返回按帧汇总的碰撞强度字典
 
     @staticmethod
-    def _on_collision(weak_self, event):
-        self = weak_self()
+    def _on_collision(weak_self, event): # 碰撞事件回调函数，处理碰撞发生时的逻辑
+        # 通过弱引用获取实例引用，若实例已被销毁则返回
+        self = weak_self() 
         if not self:
-            return
-        actor_type = get_actor_display_name(event.other_actor)
+            return 
+        actor_type = get_actor_display_name(event.other_actor) # 获取碰撞对象的显示名称并在HUD上通知用户 
         self.hud.notification('Collision with %r' % actor_type)
-        impulse = event.normal_impulse
+        impulse = event.normal_impulse # 计算碰撞强度（基于冲量向量的模长）
         intensity = math.sqrt(impulse.x**2 + impulse.y**2 + impulse.z**2)
-        self.history.append((event.frame, intensity))
-        if len(self.history) > 4000:
+        self.history.append((event.frame, intensity))  # 记录碰撞事件（帧号和强度）
+        if len(self.history) > 4000: # 限制历史记录长度，避免内存溢出
             self.history.pop(0)
 
 
@@ -975,30 +1015,30 @@ class CollisionSensor(object):
 # ==============================================================================
 
 
-class LaneInvasionSensor(object):
+class LaneInvasionSensor(object): # 车道入侵传感器类，用于检测并处理车辆偏离车道的事件
     def __init__(self, parent_actor, hud):
-        self.sensor = None
+        self.sensor = None # 存储Carla传感器对象的引用
 
-        # If the spawn object is not a vehicle, we cannot use the Lane Invasion Sensor
+        # 仅当父Actor是车辆时才创建传感器
         if parent_actor.type_id.startswith("vehicle."):
-            self._parent = parent_actor
-            self.hud = hud
-            world = self._parent.get_world()
+            self._parent = parent_actor # 挂载传感器的车辆
+            self.hud = hud # HUD对象，用于显示车道偏离信息
+            world = self._parent.get_world() # 获取世界对象并创建车道入侵传感器蓝图
             bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
-            self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
+            self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent) # 生成传感器并将其附着到车辆上
             # We need to pass the lambda a weak reference to self to avoid circular
             # reference.
-            weak_self = weakref.ref(self)
+            weak_self = weakref.ref(self) # 设置传感器数据回调函数，使用弱引用避免循环引用
             self.sensor.listen(lambda event: LaneInvasionSensor._on_invasion(weak_self, event))
 
     @staticmethod
-    def _on_invasion(weak_self, event):
-        self = weak_self()
+    def _on_invasion(weak_self, event): # 车道入侵事件回调函数，处理车辆跨越车道线时的逻辑
+        self = weak_self() # 通过弱引用获取实例引用，若实例已被销毁则返回
         if not self:
             return
-        lane_types = set(x.type for x in event.crossed_lane_markings)
-        text = ['%r' % str(x).split()[-1] for x in lane_types]
-        self.hud.notification('Crossed line %s' % ' and '.join(text))
+        lane_types = set(x.type for x in event.crossed_lane_markings)  # 提取被跨越的车道线类型
+        text = ['%r' % str(x).split()[-1] for x in lane_types]         # 格式化车道线类型文本
+        self.hud.notification('Crossed line %s' % ' and '.join(text))  # 在HUD上显示跨越的车道线类型
 
 
 # ==============================================================================
@@ -1099,7 +1139,8 @@ class RadarSensor(object):
         weak_self = weakref.ref(self)
         self.sensor.listen(
             lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data))
-
+        
+#定义了一个雷达传感器的回调函数 _Radar_callback，用于处理和可视化 Carla 模拟器中雷达数据
     @staticmethod
     def _Radar_callback(weak_self, radar_data):
         self = weak_self()
