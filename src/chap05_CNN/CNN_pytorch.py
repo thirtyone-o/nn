@@ -65,7 +65,7 @@ class CNN(nn.Module):
         self.conv2 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # 3x3卷积核
             nn.BatchNorm2d(64),                                     # 添加批量归一化
-            nn.ReLU(),
+            nn.ReLU(),                                              # ReLU激活函数
             nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),  # 增加一层3x3卷积
             nn.BatchNorm2d(64),
             nn.ReLU(),
@@ -89,9 +89,7 @@ class CNN(nn.Module):
         out1 = self.out1(x)        # 第一个全连接层 + 激活函数，线性变换: [B, in_features] -> [B, hidden_features]
         out1 = F.relu(out1)        # 应用ReLU激活函数引入非线性
         out1 = self.dropout(out1)  # 应用dropout正则化，随机丢弃部分神经元输出
-        out2 = self.out2(out1)     # 应用dropout正则化，随机丢弃部分神经元输出
-        # 第二个全连接层，将隐藏层特征映射到输出空间
-        # 线性变换: [B, hidden_features] -> [B, out_features]
+        out2 = self.out2(out1)     # 将上一层输出out1传递给当前层self.out2进行处理
         return out2
 
 # 测试函数 - 评估模型在测试集上的准确率
@@ -143,6 +141,7 @@ def train(cnn):
             # 每20个batch打印一次测试准确率
             if step != 0 and step % 20 == 0:
                 print("=" * 10, step, "=" * 5, "=" * 5, "测试准确率: ", test(cnn), "=" * 10)
+                # step != 0: 跳过初始训练前的测试（通常初始准确率无意义）
 # 主程序入口
 if __name__ == '__main__':
     cnn = CNN()  # 创建CNN实例

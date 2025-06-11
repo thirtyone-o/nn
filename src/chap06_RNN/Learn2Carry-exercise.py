@@ -18,13 +18,11 @@ from tensorflow.keras import layers, optimizers, datasets
 import os,sys,tqdm
 
 
-# ## 数据生成
+# 数据生成
 # 我们随机在 `start->end`之间采样除整数对`(num1, num2)`，计算结果`num1+num2`作为监督信号。
-# 
 # * 首先将数字转换成数字位列表 `convertNum2Digits`
 # * 将数字位列表反向
 # * 将数字位列表填充到同样的长度 `pad2len`
-# 
 
 # In[2]:
 
@@ -36,6 +34,7 @@ def gen_data_batch(batch_size: int, start: int, end: int) -> tuple:
         start: 开始数值
         end: 结束数值
     '''
+    # 生成随机数
     numbers_1 = np.random.randint(start, end, batch_size)
     numbers_2 = np.random.randint(start, end, batch_size)
     results = numbers_1 + numbers_2
@@ -113,14 +112,19 @@ def prepare_batch(Nums1, Nums2, results, maxlen):
 class myRNNModel(keras.Model):
     def __init__(self):
         super(myRNNModel, self).__init__()
-         # 嵌入层：将数字0-9转换为32维向量
+        # 嵌入层：将数字0-9转换为32维向量
+        # 输入的数字范围是0-9，嵌入维度为32，batch_input_shape=[None, None]表示输入的批次大小和序列长度是动态的
         self.embed_layer = tf.keras.layers.Embedding(10, 32, 
                                                     batch_input_shape=[None, None])
        
         # 基础RNN单元和RNN层
-        self.rnncell = tf.keras.layers.SimpleRNNCell(64)#RNN单元（64隐藏层）
+        # 定义一个基础的RNN单元，隐藏层大小为64
+        self.rnncell = tf.keras.layers.SimpleRNNCell(64)
+        # 构建RNN层，使用定义的RNN单元，并返回整个序列的输出
         self.rnn_layer = tf.keras.layers.RNN(self.rnncell, return_sequences=True)
-        self.dense = tf.keras.layers.Dense(10) # 分类层（预测每个数位的0-9概率）
+        # 分类层：预测每个时间步的数字（0-9）
+        # 使用一个全连接层，输出维度为10，对应于数字0-9的概率分布
+        self.dense = tf.keras.layers.Dense(10) 
         
     @tf.function
     def call(self, num1, num2):
@@ -155,20 +159,22 @@ class myRNNModel(keras.Model):
 
 
 @tf.function
-def compute_loss(logits, labels):
+def compute_loss(logits, labels):# 使用 sparse_softmax_cross_entropy_with_logits 计算每个样本的交叉熵损失
+    # 输入是 logits 和对应的 labels（真实类别索引）
+    # 输出是一个形状为 (B,) 的损失张量
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
             logits=logits, labels=labels)
-    return tf.reduce_mean(losses)
+    return tf.reduce_mean(losses)# 对所有样本的损失求平均，得到一个标量值作为最终的 loss
 
 @tf.function
 def train_one_step(model, optimizer, x, y, label):
-    with tf.GradientTape() as tape:
+    with tf.GradientTape() as tape: #使用 TensorFlow 的梯度磁带（GradientTape）上下文管理器，自动追踪该作用域内的所有可训练变量操作
         logits = model(x, y)
-        loss = compute_loss(logits, label)
+        loss = compute_loss(logits, label) #对比模型的预测值 logits 和真实标签 label，输出当前损失值
 
     # 计算梯度
     grads = tape.gradient(loss, model.trainable_variables)
-    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    optimizer.apply_gradients(zip(grads, model.trainable_variables)) #将梯度与对应的模型参数配对，使用优化器按梯度方向更新模型参数
     return loss
 
 
@@ -189,11 +195,12 @@ def train(steps, model, optimizer):
     return loss
 
 def evaluate(model):
+    # 评估模型在大数加法（555,555,555~999,999,998）上的准确率
     datas = gen_data_batch(batch_size=2000, start=555555555, end=999999999)
     Nums1, Nums2, results = prepare_batch(*datas, maxlen=11)
     logits = model(tf.constant(Nums1, dtype=tf.int32), tf.constant(Nums2, dtype=tf.int32))
-    logits = logits.numpy()
-    pred = np.argmax(logits, axis=-1)
+    logits = logits.numpy() # 将模型输出的tensor转换为numpy数组，便于后续处理
+    pred = np.argmax(logits, axis=-1) # 预测数位列表
     res = results_converter(pred)
     for o in list(zip(datas[2], res))[:20]:
         print(o[0], o[1], o[0]==o[1])
