@@ -5,7 +5,16 @@ import matplotlib.pyplot as plt
 
 # 生成混合高斯分布数据
 def generate_data(n_samples=1000):
-    np.random.seed(42)
+    """生成混合高斯分布数据集
+    
+    参数:
+        n_samples: 总样本数量 (默认=1000)
+    
+    返回:
+        X: 特征矩阵 (n_samples, 2)
+        y_true: 真实标签 (n_samples,)
+    """
+    np.random.seed(42)  # 固定随机种子以确保结果可复现
     # 定义三个高斯分布的中心点
     mu_true = np.array([ 
         [0, 0],  # 第一个高斯分布的均值
@@ -29,6 +38,12 @@ def generate_data(n_samples=1000):
     # 生成一个合成数据集，该数据集由多个多元正态分布的样本组成
     samples_per_component = (weights_true * n_samples).astype(int)
     
+    # 确保样本总数正确（由于浮点转换可能有误差）
+    total_samples = np.sum(samples_per_component)
+    if total_samples < n_samples:
+        # 将缺少的样本添加到权重最大的成分中
+        samples_per_component[np.argmax(weights_true)] += n_samples - total_samples
+    
     # 用于存储每个高斯分布生成的数据点
     X_list = []  
     
@@ -37,6 +52,7 @@ def generate_data(n_samples=1000):
     
     # 从第i个高斯分布生成样本
     for i in range(n_components): 
+        #生成多元正态分布样本
         X_i = np.random.multivariate_normal(mu_true[i], sigma_true[i], samples_per_component[i])
         # 将生成的样本添加到列表
         X_list.append(X_i) 
@@ -59,6 +75,14 @@ def logsumexp(log_p, axis=1, keepdims=False):
     
     计算log(sum(exp(log_p)))，通过减去最大值避免数值溢出
     数学公式: log(sum(exp(log_p))) = max(log_p) + log(sum(exp(log_p - max(log_p))))
+    
+    参数：
+    log_p: 输入的对数概率（可能为负无穷）。
+    axis: 沿着哪个轴进行计算，默认为1（即按行计算）。
+    keepdims: 是否保持维度，默认为False。
+
+    返回：
+    计算结果的log(sum(exp(log_p)))，返回与输入数组相同形状的结果。
     """
     log_p = np.asarray(log_p)   # 将对数概率列表转换为NumPy数组
     
@@ -187,34 +211,40 @@ class GaussianMixtureModel:
         
         # 最终聚类结果：每个样本分配到概率最大的高斯成分
         self.labels_ = np.argmax(gamma, axis=1)
+        # 基于软聚类结果确定最终的硬聚类标签
         return self
 
-    def _log_gaussian(self, X, mu, sigma):
-        """计算多维高斯分布的对数概率密度
+   def _log_gaussian(self, X, mu, sigma):
+    """计算多维高斯分布的对数概率密度
+    
+    参数:
+        X: 输入数据点/样本集，形状为(n_samples, n_features)
+        mu: 高斯分布的均值向量，形状为(n_features,)
+        sigma: 高斯分布的协方差矩阵，形状为(n_features, n_features)
         
-        参数:
-            X: 输入数据，shape=(n_samples, n_features)
-            mu: 高斯分布均值，shape=(n_features,)
-            sigma: 高斯分布协方差矩阵，shape=(n_features, n_features)
-            
-        返回:
-            log_prob: 对数概率密度，shape=(n_samples,)
-        """
-        # 获取特征维度数量
-        n_features = mu.shape[0]
+    返回:
+        log_prob: 每个样本的对数概率密度，形状为(n_samples,)
+    """
+    # 获取特征维度数（协方差矩阵的维度）
+    n_features = mu.shape[0]
 
-        # 数据中心化：每个样本减去均值
-        X_centered = X - mu
+    # 数据归一化：将数据减去均值，得到中心化数据
+    # 高斯分布公式中的(x-μ)项
+    X_centered = X - mu  # 形状保持(n_samples, n_features)
 
-        # 计算协方差矩阵的对数行列式和逆矩阵
-        # 行列式用于计算高斯分布的归一化常数
+    # 计算协方差矩阵的行列式符号和对数值
+    # sign: 行列式的符号（正负）
+    # logdet: 行列式的自然对数值
+    sign, logdet = np.linalg.slogdet(sigma)  # 数值稳定的行列式计算方法
+
+    # 处理协方差矩阵可能奇异（不可逆）的情况
+    if sign <= 0:  # 行列式非正（理论上协方差矩阵应是正定的）
+        # 添加一个小的对角扰动项（单位矩阵乘以1e-6）
+        # 确保矩阵可逆且正定，提高数值稳定性
+        sigma += np.eye(n_features) * 1e-6  # 正则化处理
+        
+        # 重新计算调整后的协方差矩阵的行列式
         sign, logdet = np.linalg.slogdet(sigma)
-        
-        # 处理协方差矩阵接近奇异的情况（行列式接近0）
-        if sign <= 0:
-            # 添加微小扰动确保协方差矩阵正定（数值稳定性）
-            sigma += np.eye(n_features) * 1e-6
-            sign, logdet = np.linalg.slogdet(sigma)
 
         # 计算协方差矩阵的逆
         inv = np.linalg.inv(sigma)
@@ -229,21 +259,30 @@ class GaussianMixtureModel:
     
     def plot_convergence(self):
         """可视化对数似然的收敛过程"""
+        # 检查是否有对数似然值记录
         if not self.log_likelihoods:
             raise ValueError("请先调用fit方法训练模型")
-        
+
+        # 创建一个图形窗口，设置大小为10x6英寸
         plt.figure(figsize=(10, 6))
+        # 绘制对数似然值随迭代次数的变化曲线
+        # 使用蓝色实线绘制，范围从1到len(self.log_likelihoods)
         plt.plot(range(1, len(self.log_likelihoods) + 1), self.log_likelihoods, 'b-')
+        # 设置x轴标签为“迭代次数”
         plt.xlabel('迭代次数')
+        # 设置y轴标签为“对数似然值”
         plt.ylabel('对数似然值')
+        # 设置图表标题为“EM算法收敛曲线”
         plt.title('EM算法收敛曲线')
-        plt.grid(True)  # 启用网格线，增强可读性
+        # 启用网格线，增强可读性
+        plt.grid(True)  
         plt.show()
 
 # 主程序
 if __name__ == "__main__":
     # 1. 生成合成数据
     print("生成混合高斯分布数据...")
+    # 调用generate_data函数生成样本数据：
     X, y_true = generate_data(n_samples=1000)
     print(f"生成数据形状: {X.shape}, 标签形状: {y_true.shape}")
     
@@ -254,7 +293,7 @@ if __name__ == "__main__":
     y_pred = gmm.labels_
     print(f"完成训练，共进行{len(gmm.log_likelihoods)}次迭代")
     
-    # 3. 可视化收敛过程
+    # 3. 收敛曲线绘制，可以用于判断是否收敛
     print("\n绘制EM算法收敛曲线...")
     gmm.plot_convergence()
     

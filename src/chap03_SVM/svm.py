@@ -56,12 +56,16 @@ class SVM:
         for epoch in range(self.max_iter):
             # 计算函数间隔
             margin = y * (np.dot(X, self.w) + self.b)
-            # 找出违反间隔条件的样本（margin < 1）
-            idx = np.where(margin < 1)[0]
+            # 找出违反间隔条件的样本（margin < 1）： 当样本的 margin < 1 时，该样本被认为是错误分类或处于间隔区域内
+            idx = np.where(margin < 1)[0]  # 返回违反间隔条件的样本的索引
+
+            # 如果没有违反间隔条件的样本，则跳过梯度更新：这意味着所有样本都满足 margin >= 1，模型已经达到一个相对稳定的状态
+            if len(idx) == 0:
+                continue
 
             # 计算梯度
             # L2正则化项 + 错误分类样本的平均梯度
-            dw = (2 * self.reg_lambda * self.w) - np.mean(y[idx].reshape(-1, 1) * X[idx], axis=0)
+            dw = (2 * self.reg_lambda * self.w) - np.mean(y[idx].reshape(-1, 1) * X[idx], axis = 0)
             db = -np.mean(y[idx])
 
             # 参数更新
@@ -94,22 +98,19 @@ if __name__ == '__main__':
 
     # 使用SVM模型预测标签
     # 从训练数据中提取前两列作为特征(x1, x2)
-    x_train = data_train[:, :2]  # feature [x1, x2]
+    x_train = data_train[:, :2]  # 训练集特征
     t_train = data_train[:, 2]   # 训练集标签
+
     # 使用训练好的SVM模型对训练数据进行标签预测
     t_train_pred = svm.predict(x_train)     # 预测标签
 
+    # 提取测试数据的前两列作为特征 [x1, x2]
     x_test = data_test[:, :2]    # 测试集特征
     t_test = data_test[:, 2]     # 测试集标签
-    # 对测试数据进行预测，获取预测标签
-    t_test_pred = svm.predict(x_test)
 
-    # 评估结果，计算准确率
-    # 计算训练集准确率（真实标签 vs 预测标签）
-    acc_train = eval_acc(t_train, t_train_pred)
-    # 计算测试集准确率
+
+    t_test_pred = svm.predict(x_test)   # 预测测试集标签
+
     acc_test = eval_acc(t_test, t_test_pred)
-    # 打印训练集准确率（百分比形式，保留1位小数）
-    print("train accuracy: {:.1f}%".format(acc_train * 100))
-    # 打印测试集准确率
+
     print("test accuracy: {:.1f}%".format(acc_test * 100))
