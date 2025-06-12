@@ -74,11 +74,17 @@ class MyConvModel(keras.Model):
 
     def __init__(self):
         super(MyConvModel, self).__init__()
+        # 卷积层1：32个5x5滤波器，ReLU激活，same padding保持特征图尺寸
         self.l1_conv = Conv2D(32, (5, 5), activation='relu', padding='same')
+        # 卷积层2：64个5x5滤波器，ReLU激活，same padding
         self.l2_conv = Conv2D(64, (5, 5), activation='relu', padding='same')
+        # 最大池化层：2x2窗口，步幅2，实现下采样（尺寸减半）
         self.pool = MaxPooling2D(pool_size=(2, 2), strides=2)
+        # 展平层：将多维特征图转换为一维向量
         self.flat = Flatten()
+        # 全连接层1：100个神经元，tanh激活（引入非线性）
         self.dense1 = layers.Dense(100, activation='tanh')
+        # 输出层：10个神经元对应0-9数字分类（无激活函数，配合softmax使用）
         self.dense2 = layers.Dense(10)
 
     @tf.function
