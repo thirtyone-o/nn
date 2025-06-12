@@ -259,8 +259,12 @@ def reduce_avg(reduce_target, lengths, dim):
         raise ValueError(('First input tensor should be at least rank %d, ' +
                          'while it got rank %d') % (dim+1, len(shape_of_target)))
 
+    # 计算目标张量与长度张量的维度差
+    # 用于确定需要扩展的维度数量（通过添加单例维度对齐形状）
     rank_diff = len(shape_of_target) - len(shape_of_lengths) - 1
-    mxlen = tf.shape(reduce_target)[dim]  # 获取当前维度的最大长度 mxlen
+    # 获取当前维度的最大长度 mxlen
+    mxlen = tf.shape(reduce_target)[dim] 
+    # 生成序列掩码：标记有效位置（1）和填充位置（0）
     mask = mkMask(lengths, mxlen)
     
     # 处理序列长度与掩码张量的维度对齐问题
