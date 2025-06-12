@@ -33,10 +33,21 @@ def gen_data_batch(batch_size: int, start: int, end: int) -> tuple:
         end: 结束数值
     '''
     # 生成随机数
-    numbers_1 = np.random.randint(start, end, batch_size)
-    numbers_2 = np.random.randint(start, end, batch_size)
-    results = numbers_1 + numbers_2
-    return numbers_1, numbers_2, results# 返回生成的随机数数组及其和
+    numbers_1 = np.random.randint(start, end, batch_size)  
+    # 生成一个形状为 batch_size 的数组，元素是 [start, end) 范围内的随机整数，作为第一个加数
+
+    numbers_2 = np.random.randint(start, end, batch_size)  
+    # 同上，生成第二个加数数组，用于模拟成对的加法数据
+
+    results = numbers_1 + numbers_2  
+    # 将两个数组逐元素相加，得到每对随机整数的和，形成目标标签（labels）
+
+    return numbers_1, numbers_2, results  
+    # 返回三个数组：
+    # - numbers_1: 第一个加数数组
+    # - numbers_2: 第二个加数数组
+    # - results: 对应的加法结果数组
+    # 可用于训练神经网络完成加法任务或测试模型性能
 
 def convertNum2Digits(Num):
     '''将一个整数转换成一个数字位的列表, 例如 133412 ==> [1, 3, 3, 4, 1, 2]
