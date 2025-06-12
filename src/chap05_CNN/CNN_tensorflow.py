@@ -123,8 +123,8 @@ def conv2d(x, W, padding='SAME', strides=[1, 1, 1, 1]):
 
 
 def max_pool_2x2(x: tf.Tensor,
-    pool_size: int = 2,
-    strides: int = 2,
+    pool_size: int = 2,    # 池化窗口的边长为2
+    strides: int = 2,      # 窗口滑动步长为2
     padding: str = 'SAME',
     data_format: str = 'NHWC'
 ) -> tf.Tensor:
