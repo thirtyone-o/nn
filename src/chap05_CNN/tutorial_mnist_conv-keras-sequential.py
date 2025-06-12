@@ -52,9 +52,14 @@ def prepare_mnist_features_and_labels(x, y):
         x: 归一化后的图像数据。
         y: 转换为整型的标签。
     """
-    x = tf.cast(x, tf.float32) / 255.0
-    y = tf.cast(y, tf.int64)
-    return x, y
+    x = tf.cast(x, tf.float32) / 255.0  
+    # 将输入图像 x 转换为 float32 类型，并归一化到 [0, 1] 区间（常见于图像处理，原始像素值范围是 [0, 255]）
+
+    y = tf.cast(y, tf.int64)  
+    # 将标签 y 转换为 int64 类型，确保其适合用于 TensorFlow 的损失函数
+
+    return x, y  
+    # 返回处理后的输入数据 x 和标签 y
 
 
 # In[2]:
