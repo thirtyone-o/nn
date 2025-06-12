@@ -290,8 +290,8 @@ def train(model, optimizer, seqlen):
     # 训练2000步
     for step in range(2000):
         # 获取一个批次的训练数据
-        batched_examples, enc_x, dec_x, y = get_batch(32, seqlen)
-        loss = train_one_step(model, optimizer, enc_x, dec_x, y)
+        batched_examples, enc_x, dec_x, y = get_batch(32, seqlen) # 从数据集中获取一个批次的训练数据
+        loss = train_one_step(model, optimizer, enc_x, dec_x, y) # 执行单步训练，计算损失并更新模型参数
         
         # 每500步打印一次损失
         if step % 500 == 0:
