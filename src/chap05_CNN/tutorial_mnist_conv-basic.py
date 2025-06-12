@@ -101,9 +101,9 @@ class MyConvModel(keras.Model):
         logits = self.dense2(dense1)
         return logits
 
-
+# 模型实例化与优化器配置
 model = MyConvModel()
-optimizer = optimizers.Adam()
+optimizer = optimizers.Adam()  # 使用Adam优化器（默认学习率0.001）
 
 
 # ## 定义loss以及train loop
