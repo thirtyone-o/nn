@@ -92,13 +92,17 @@ class MyConvModel(keras.Model):
         返回:
             logits: 模型输出的logits。
         """
+         # 第一卷积块
         h1 = self.l1_conv(x)
         h1_pool = self.pool(h1)
+        # 第二卷积块
         h2 = self.l2_conv(h1_pool)
         h2_pool = self.pool(h2)
+        # 全连接层
         flat_h = self.flat(h2_pool)
         dense1 = self.dense1(flat_h)
         logits = self.dense2(dense1)
+        
         return logits
 
 
